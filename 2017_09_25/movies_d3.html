@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Filmes</title>
+	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+
+<body>
+	<!--  GRÁFICO COMPARAÇÃO POR BILHETERIA (GROSS) -->
+	<div id="chart_gross"> 
+		<h1 id="titulo1"></h1>
+		<script type="text/javascript">
+			d3.select("h1#titulo1")
+				.text("Quais os filmes com maiores bilheterias?");
+			d3.select("h1#titulo1").style("font-size", "40px");
+		</script>
+
+		<script type="text/javascript">
+			function render(data, comparator) {
+				d3.select("#chart_gross").selectAll("div.h-bar")
+						.data(data)
+					.enter().append("div")
+					.attr("class", "h-bar")
+					.append("span");
+
+				d3.select("#chart_gross").selectAll("div.h-bar")
+						.data(data)
+					.attr("class", "h-bar")
+					.style("width", function (d) {
+						return (d.Worldwide_Gross_M/8 * 6) + "px";
+					})
+					.select("span")
+						.text(function (d) {
+							return d.Film;
+						});
+				if(comparator)
+					d3.select("body")
+						.selectAll("div.h-bar")
+						.sort(comparator);
+			}
+
+			var comparePorBilheteria = function (a, b) {
+				return a.Worldwide_Gross_M > b.Worldwide_Gross_M?-1:1;
+			};
+
+			d3.json("movies.json", function(error, json){
+				render(json, comparePorBilheteria);
+			});
+		</script>
+	</div>
+
+	<!--  GRÁFICO COMPARAÇÃO POR ORÇAMENTO  -->
+	<div id="chart_budget">
+		<h1 id="titulo2"></h1>
+		<script type="text/javascript">
+			d3.select("h1#titulo2")
+				.text("Quais os filmes com maiores orçamentos?");
+			d3.select("h1#titulo2").style("font-size", "40px");
+		</script>
+
+		<script type="text/javascript">
+			function renderB(data, comparator) {
+				d3.select("#chart_budget").selectAll("div.h-bar2")
+						.data(data)
+					.enter().append("div")
+					.attr("class", "h-bar2")
+					.append("span");
+
+				d3.select("#chart_budget").selectAll("div.h-bar2")
+						.data(data)
+					.attr("class", "h-bar2")
+					.style("width", function (d) {
+						return (d.Budget_M/2 * 6) + "px";
+					})
+					.select("span")
+						.text(function (d) {
+							return d.Film;
+						});
+				if(comparator)
+					d3.select("body")
+						.selectAll("div.h-bar2")
+						.sort(comparator);
+			}
+
+			var comparePorOrcamento = function (a, b) {
+				return a.Budget_M > b.Budget_M?-1:1;
+			};
+
+			d3.json("movies.json", function(error, json){
+				renderB(json, comparePorOrcamento);
+			});
+		</script>
+	</div>
+
+	<!--  GRÁFICO COMPARAÇÃO POR LUCRO  -->
+	<div id="chart_lucro"> 
+		<h1 id="titulo3"></h1>
+		<script type="text/javascript">
+			d3.select("h1#titulo3")
+				.text("Quais os filmes mais lucrativos?");
+			d3.select("h1#titulo3").style("font-size", "40px");
+		</script>
+
+		<script type="text/javascript">
+			function renderLucro(data, comparator) {
+				d3.select("#chart_lucro").selectAll("div.h-bar3")
+						.data(data)
+					.enter().append("div")
+					.attr("class", "h-bar3")
+					.append("span");
+					
+				d3.select("#chart_lucro").selectAll("div.h-bar3")
+						.data(data)
+					.attr("class", "h-bar3")
+					.style("width", function (d) {
+						//Calculo do lucro
+						var lucro = ((d.Worldwide_Gross_M) - (d.Budget_M))
+						return (lucro) + "px";
+					})
+					.select("span")
+						.text(function (d) {
+							return d.Film;
+						});
+				if(comparator)
+					d3.select("body")
+						.selectAll("div.h-bar3")
+						.sort(comparator);
+			}
+
+			var comparePorLucro = function (a, b) {
+				return (a.Worldwide_Gross_M - a.Budget_M) > (b.Worldwide_Gross_M - b.Budget_M)?-1:1;
+			};
+
+			d3.json("movies.json", function(error, json){
+				renderLucro(json, comparePorLucro);
+			});
+		</script>
+	</div>
+
+	<!--  GRÁFICO COMPARAÇÃO POR GÊNERO  -->
+	<div id="chart_genre"> 
+		<h1 id="titulo4"></h1>
+		<script type="text/javascript">
+			d3.select("h1#titulo4")
+				.text("[BÔNUS] Quais os gêneros com maiores bilheterias?");
+			d3.select("h1#titulo4").style("font-size", "40px");
+		</script>
+
+		<script type="text/javascript">
+			function renderGenre(data, comparator) {
+				var nested_data = d3.nest()
+					.key(function(d) {
+						return d.Genre;
+					})
+					.rollup(function(v) {
+						return {
+							"value": v.Worldwide_Gross_M,
+							"sum": d3.sum(v, function(d) {
+								return parseFloat(d.Worldwide_Gross_M);
+							})
+						}
+					})
+					.entries(data);
+			//Select
+				d3.select("#chart_genre").selectAll("div.h-bar4")
+						.data(nested_data)
+					.enter().append("div")
+					.attr("class", "h-bar4")
+					.append("span");
+					
+				d3.select("#chart_genre").selectAll("div.h-bar4")
+						.data(nested_data)
+					.attr("class", "h-bar4")
+					.style("width", function (d) {
+						return d.value.sum/5 + "px";
+					})
+					.select("span")
+						.text(function (d) {
+							return d.key;
+						});
+				if(comparator)
+					d3.select("body")
+						.selectAll("div.h-bar4")
+						.sort(comparator);
+			}
+
+			var comparePorGenero = function (a, b) {
+				return a.value.sum < b.value.sum?1:-1;
+			};
+
+			d3.json("movies.json", function(error, json){
+				renderGenre(json, comparePorGenero);
+			});
+		</script>
+
+</body>
+</html>
